@@ -48,17 +48,20 @@ void init_socket(void) {
 
 // Check if no. of rows transfered is same as expected
 int do_checksum(int chars_sent) {
-        int checksum;
-        recv(client_sock, &checksum, sizeof(int), 0);
-        printf("Checksum %d\n", checksum);
+    int checksum, retval;
+    retval = recv(client_sock, &checksum, sizeof(int), 0);
+    if (retval == 0)
+        return DISCONNECT;
 
-        if (checksum == chars_sent) { // Checksum OK return back.
-            send(client_sock, "Ok", 3, 0); 
-            return TRUE; 
-        }
-        // Otherwise, Handle checksum fail case
-        send(client_sock, "Failed", 7, 0); 
-        return FALSE;
+    printf("Checksum %d\n", checksum);
+
+    if (checksum == chars_sent) { // Checksum OK , send Ok return back TRUE.
+        send(client_sock, "Ok", 3, 0); 
+        return True; 
+    }
+    // Otherwise, Handle checksum fail case, send Failed and return FALSE
+    send(client_sock, "Failed", 7, 0); 
+    return False;
 }
 
 
@@ -67,12 +70,14 @@ void transfer_data(void) {
 	char buffer[BUFSIZE];
     bzero(buffer, BUFSIZE);
 
-    recv(client_sock, buffer, BUFSIZE, 0); // "waiting for data" message received from process2
+    int retval = recv(client_sock, buffer, BUFSIZE, 0); // "waiting for data" message received from process2
+    if (retval == 0) // If recv returns 0 connection lost 
+        return;      // return and reconnect
     
     // keep checking database for new rows and kepp sending them to process2
-    while (TRUE) {
+    while (True) {
         long total_rows = get_db_rows_count(con); // Get count of current database records
-        // // If no newly inserted rows, then sleep 30sec and check again
+        // If no newly inserted rows, then sleep and check again
         if (rows_fetched == total_rows) {
             sleep(SLEEP_TIME);
             continue;
@@ -91,7 +96,13 @@ void transfer_data(void) {
         printf("Chars sent count = %lu\n", strlen(buffer));
 
         // Checksum
-        if ( do_checksum(strlen(buffer)) == TRUE )
+        retval = do_checksum(strlen(buffer));
+        if (retval == DISCONNECT) { // If disconnected during checksum test
+            // Set rows_fetched to its previous value
+            rows_fetched -= rows_converted_count;
+            return;           // return and reconnect
+        }
+        else if (retval == True)
             // Persist the value of rows_fetched
             persist_rows_fetched(con);
         else
@@ -100,14 +111,19 @@ void transfer_data(void) {
 
         // Free memory allocated for mysql result struct 
         mysql_free_result(result);
+
+        /* sleep(5); // For debugging */
     }
 }
+
 
 // Close socket and deallocate memory for MySQL connection and close it.
 void cleanup(void) {
     close_db_connection(con);
-    close(server_sock);
+    close(client_sock);
+    shutdown(server_sock, SHUT_RDWR);
 }
+
 
 int main(int argc, char *argv[]){
     
@@ -116,15 +132,16 @@ int main(int argc, char *argv[]){
     init_socket(); // Initialize server socket, bind it to address and listen
     socklen_t addr_size = sizeof(client_addr);
 
-    printf("Rows_Fetched %ld\n", rows_fetched);
+    printf("Rows Already Transferred : %ld\n", rows_fetched);
 
-    while(TRUE){
+    while(True){
         // Keep on accepting until client successfully connected.
         while ( (client_sock = accept(server_sock, (struct sockaddr*)&client_addr, &addr_size)) < 0 );
         printf("OS_USER_2 connected.\n");
         // Start data transfer between server and client i.e., process1 and process2 respectively.
         transfer_data();
+        // close client socket and reconnect client
+        close(client_sock);
     }
-
 	return 0;
 }

@@ -1,4 +1,4 @@
-#include <json-c/json_object.h>
+#include <json-c/json_tokener.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <json-c/json.h>
+#include <json-c/json_object.h>
 
 #include "process2.h"
 
@@ -32,11 +33,12 @@ void init_socket(void) {
     addr.sin_addr.s_addr = inet_addr(IPADDR);
 }
 
-// Parse the string in buffer to json object/array and return
-json_object * parse_to_json(char *buffer) {
-    json_object *array = json_tokener_parse(buffer);
-    return array;
+// Close socket and reinitialize it for reconnecting 
+void restart_socket(void) {
+    close(sock);
+    init_socket();
 }
+
 
 // open file in specified mode.
 void open_file(char *mode) {
@@ -75,39 +77,56 @@ void dump_or_append_to_file(json_object *array) {
 }
 
 
+// Buffer will be converted to json and persisted in file.
+void persist_received_buffer_to_file(char *buffer) {
+    // Open file in r+ mode to presist json data
+    open_file("r+");
+
+    // convert the records received as string to json
+    json_object *recvd_arr = json_tokener_parse(buffer);
+
+    // Dump json string to file or append if already present
+    dump_or_append_to_file(recvd_arr);
+    fclose(fp);
+
+    // Clear and deallocate json object
+    json_object_put(recvd_arr);
+}
+
+
+// Data transfer between server and client i.e., process1 and process2 respectively.
 void transfer_data(void) {
+    int retval;
     char buffer[BUFSIZE];
     bzero(buffer, sizeof(buffer)); // Clear buffer
     strcpy(buffer, "waiting for data"); // copy "waiting for data" to buffer
     send(sock, buffer, strlen(buffer), 0); // send buffer to server i.e., process1
 
-    int chars_recvd; // To store count of received records
+    int chars_recvd; // To store count of received chars from process1
     // Keep receiving data from process1 and persist them to file.
-    while (TRUE) {
+    while (True) {
         bzero(buffer, BUFSIZE);
-        recv(sock, buffer, BUFSIZE, 0); // Received records from process1
+        retval = recv(sock, buffer, BUFSIZE, 0); // Received records from process1
+        if (retval == 0) // If recv returns 0 connection lost
+            return;      // return and reconnect
 
-        // get length of buffer to know the size of received records
+        // Get length of buffer to know the size of received records
         chars_recvd = strlen(buffer);
-        // Send count of received records to server for checksum
+        // Send count of received chars to server for checksum
         send(sock, &chars_recvd, sizeof(int), 0);
 
         char buf[BUFSIZE];
         bzero(buf, BUFSIZE);
-        recv(sock, buf, BUFSIZE, 0);
-        if (strcmp(buf, "Failed") == 0)
-            continue;
+        // Receive Checksum status, if Failed get data from server again else persist to file
+        retval = recv(sock, buf, BUFSIZE, 0);
+        if (retval == 0) // If recv returns 0 connection lost 
+            return;      // return and reconnect
 
-        // Open file in r+ mode to presist json data
-        open_file("r+");
-        // convert the records received as string to json
-        json_object *recvd_arr = parse_to_json(buffer);
-        // Dump json string to file or append if already present
-        dump_or_append_to_file(recvd_arr);
-        fclose(fp);
+        if (strcmp(buf, "Failed") == 0) // If checksum failed
+            continue;              // continue and do the transfer again
 
-        // Clear and deallocate json object
-        json_object_put(recvd_arr);
+        // Checksum passed, persist buffer
+        persist_received_buffer_to_file(buffer);
     }
 }
 
@@ -116,13 +135,12 @@ int main(int argc, char *argv[]){
     // Initialize Socket
     init_socket();
     
-    // signal(SIGINT, handler);
-
+    // Open file and a+ mode and close it so that it will create the file if not exists
     open_file("a+");
     fclose(fp);
 
-    while (TRUE) {
-        // Try connecting each time after sleeping 30sec until successfull.
+    while (True) {
+        // Try connecting each time after sleeping until successfull.
         while (connect(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
             sleep(SLEEP_TIME);
 
@@ -130,9 +148,8 @@ int main(int argc, char *argv[]){
 
         // Start data transfer between server and client i.e., process1 and process2 respectively.
         transfer_data();
+        // Restart socket connection
+        restart_socket();
     }
-
-    close(sock);
-    printf("Disconnected from the OS_USER_1\n");
     return 0;
 }
