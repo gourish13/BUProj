@@ -111,9 +111,6 @@ void transfer_data(void) {
 int main(int argc, char *argv[]){
     // Initialize Socket
     init_socket();
-    // Clear the Employee.json file if already exists by opening in w mode and closing.
-    open_file("w");
-    fclose(fp);
 
     // Try connecting each time after sleeping 30sec until successfull.
     while (connect(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
