@@ -46,17 +46,23 @@ void init_socket(void) {
 }
 
 
-void do_checksum(int rows_sent) {
+// Check if no. of rows transfered is same as expected
+int do_checksum(int chars_sent) {
         int checksum;
         recv(client_sock, &checksum, sizeof(int), 0);
         printf("Checksum %d\n", checksum);
 
-        if (checksum == rows_sent)
-            return; // Checksum OK return back.
+        if (checksum == chars_sent) { // Checksum OK return back.
+            send(client_sock, "Ok", 3, 0); 
+            return TRUE; 
+        }
         // Otherwise, Handle checksum fail case
+        send(client_sock, "Failed", 7, 0); 
+        return FALSE;
 }
 
 
+// Data transfer between server and client i.e., process1 and process2 respectively.
 void transfer_data(void) {
 	char buffer[BUFSIZE];
     bzero(buffer, BUFSIZE);
@@ -64,11 +70,11 @@ void transfer_data(void) {
     recv(client_sock, buffer, BUFSIZE, 0); // "waiting for data" message received from process2
     
     // keep checking database for new rows and kepp sending them to process2
-    while (1) {
+    while (TRUE) {
         long total_rows = get_db_rows_count(con); // Get count of current database records
         // // If no newly inserted rows, then sleep 30sec and check again
         if (rows_fetched == total_rows) {
-            sleep(30);
+            sleep(SLEEP_TIME);
             continue;
         }
         // Get result pointer of retrieved rows from DB.
@@ -82,10 +88,16 @@ void transfer_data(void) {
 
         // Send created json schema to process2 i.e., client
         send(client_sock, buffer, strlen(buffer), 0);
-        printf("Rows sent count = %d\n", rows_converted_count);
+        printf("Chars sent count = %lu\n", strlen(buffer));
 
         // Checksum
-        do_checksum(rows_converted_count);
+        if ( do_checksum(strlen(buffer)) == TRUE )
+            // Persist the value of rows_fetched
+            persist_rows_fetched(con);
+        else
+            // Set rows_fetched to its previous value
+            rows_fetched -= rows_converted_count;
+
         // Free memory allocated for mysql result struct 
         mysql_free_result(result);
     }
@@ -100,10 +112,13 @@ void cleanup(void) {
 int main(int argc, char *argv[]){
     
     con = connect_db(); // Connect to DB
+    get_persisted_rows_fetched(con); // Get previously read rows count
     init_socket(); // Initialize server socket, bind it to address and listen
     socklen_t addr_size = sizeof(client_addr);
 
-    while(1){
+    printf("Rows_Fetched %ld\n", rows_fetched);
+
+    while(TRUE){
         // Keep on accepting until client successfully connected.
         while ( (client_sock = accept(server_sock, (struct sockaddr*)&client_addr, &addr_size)) < 0 );
         printf("OS_USER_2 connected.\n");

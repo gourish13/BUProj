@@ -11,6 +11,34 @@
 /* Keep track of rows retrieved from database */
 long rows_fetched = 0;
 
+// Get rows_fetched value from DB
+void get_persisted_rows_fetched(MYSQL *con) {
+    // Execute Query to get persisted row count
+    if (mysql_query(con, "SELECT * FROM RowCount"))
+        finish_with_error(con);
+
+    // Get result pointer for executed query
+    MYSQL_RES *result = mysql_store_result(con);
+    // if result is null, there is error so print error and exit
+    if (result == NULL)
+        finish_with_error(con);
+
+    MYSQL_ROW row = mysql_fetch_row(result);
+    rows_fetched = strtol(row[0], NULL, 10);
+
+    mysql_free_result(result);
+}
+
+// Persist rows_fetched to DB.
+void persist_rows_fetched(MYSQL *con) {
+    char stmt[BUF_SIZE];
+
+    sprintf(stmt, "UPDATE RowCount set row_count = %ld", rows_fetched);
+
+    if (mysql_query(con, stmt))
+        finish_with_error(con);
+}
+
 
 /* On error exit cleaning up database connection */
 void finish_with_error(MYSQL *con) {
@@ -44,7 +72,7 @@ long get_db_rows_count(MYSQL *con) {
 
 /* Execute the select query and retrive records as result */
 MYSQL_RES * fetch_rows(MYSQL *con, long rows_to_be_fetch) {
-    char stmt[100];
+    char stmt[BUF_SIZE];
 
     // SQL Statement
     sprintf(stmt, "SELECT \
@@ -100,7 +128,7 @@ MYSQL * connect_db(void) {
     {
         fprintf(stderr, "%s\n", mysql_error(con));
         close_db_connection(con);
-    exit(1);
+        exit(1);
     }
     // Return con on successfull connection
     return con;

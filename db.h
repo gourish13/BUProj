@@ -4,6 +4,7 @@
 #define DBUSER "root"
 #define DBPASS "123456"
 #define DBNAME "employeedb"
+#define BUF_SIZE 100
 
 void finish_with_error(MYSQL *con);
 MYSQL_RES * fetch_rows(MYSQL *con, long rows_to_fetch);
@@ -12,3 +13,5 @@ void print_rows(MYSQL_RES *result);
 MYSQL * connect_db(void);
 void close_db_connection(MYSQL *con);
 int convert_to_json(MYSQL_RES *result, char *json_str);
+void get_persisted_rows_fetched(MYSQL *con);
+void persist_rows_fetched(MYSQL *con);

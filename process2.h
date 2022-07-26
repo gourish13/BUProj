@@ -4,6 +4,9 @@
 #define PORT 5568
 #define BUFSIZE 100000
 #define FILENAME "Employees.json"
+#define SLEEP_TIME 10
+#define TRUE 1
+#define FALSE 0
 
 void init_socket(void);
 json_object * parse_to_json(char *buffer);
