@@ -72,7 +72,7 @@ void transfer_data(void) {
             continue;
         }
         // Get result pointer of retrieved rows from DB.
-        // CHUNK_COUNT is count of rows read from db and send in one go.
+        // CHUNK_COUNT is max. count of rows read from db and send in one go.
         MYSQL_RES *result = fetch_rows(con, CHUNK_COUNT);
 
         // Clear buffer 
@@ -103,13 +103,13 @@ int main(int argc, char *argv[]){
     init_socket(); // Initialize server socket, bind it to address and listen
     socklen_t addr_size = sizeof(client_addr);
 
-	while(1){
+    while(1){
         // Keep on accepting until client successfully connected.
-		while ( (client_sock = accept(server_sock, (struct sockaddr*)&client_addr, &addr_size)) < 0 );
-		printf("OS_USER_2 connected.\n");
+        while ( (client_sock = accept(server_sock, (struct sockaddr*)&client_addr, &addr_size)) < 0 );
+        printf("OS_USER_2 connected.\n");
         // Start data transfer between server and client i.e., process1 and process2 respectively.
         transfer_data();
-	}
+    }
 
 	return 0;
 }
