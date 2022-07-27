@@ -9,7 +9,7 @@
 #include <json-c/json.h>
 #include <json-c/json_object.h>
 
-#include "process2.h"
+#include "datareceiver.h"
 
 socklen_t addr_size;
 struct sockaddr_in addr;

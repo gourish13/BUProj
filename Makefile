@@ -1,14 +1,14 @@
 CC=gcc
 USER=user2
 
-process1: process1.h process1.c db.h db.c
-	$(CC) -o process1 process1.c db.c `mysql_config --libs` -ljson-c
+dbreader: dbreader.h dbreader.c db.h db.c
+	$(CC) -o dbreader dbreader.c db.c `mysql_config --libs` -ljson-c
 
-process2: process2.h process2.c
-	$(CC) -o process2 process2.c -ljson-c
+datareceiver: datareceiver.h datareceiver.c
+	$(CC) -o datareceiver datareceiver.c -ljson-c
 
-install: process1 process2
-	sudo cp process2 /home/$(USER)/
+install: dbreader datareceiver
+	sudo cp datareceiver /home/$(USER)/
 
 clean:
-	sudo rm -rf /home/$(USER)/{process2,Employees.json}
+	sudo rm -rf /home/$(USER)/{datareceiver,Employees.json}

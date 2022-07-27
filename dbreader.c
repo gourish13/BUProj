@@ -1,3 +1,4 @@
+#include <asm-generic/socket.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,7 +9,7 @@
 #include <mysql/mysql.h>
 
 #include "db.h"
-#include "process1.h"
+#include "dbreader.h"
 
 /* rows_fetched initialized in db.c 
  * Keeps count of previously retrieved rows */
@@ -26,6 +27,13 @@ void init_socket(void) {
 		exit(1);
 	}
 	printf("TCP server socket created.\n");
+
+    // Reuse Address and Port
+    int opt = True;
+    if ( setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) ) {
+        perror("Error setsockopt SO_REUSEADDR | SO_REUSEPORT");
+        exit(1);
+    }
 
     // Assign address and port to server_addr
 	memset(&server_addr, '\0', sizeof(server_addr));
@@ -53,7 +61,7 @@ int do_checksum(int chars_sent) {
     if (retval == 0)
         return DISCONNECT;
 
-    printf("Checksum %d\n", checksum);
+    printf(" (Checksum %d)\n", checksum);
 
     if (checksum == chars_sent) { // Checksum OK , send Ok return back TRUE.
         send(client_sock, "Ok", 3, 0); 
@@ -93,7 +101,7 @@ void transfer_data(void) {
 
         // Send created json schema to process2 i.e., client
         send(client_sock, buffer, strlen(buffer), 0);
-        printf("Chars sent count = %lu\n", strlen(buffer));
+        printf("Chars sent count = %lu ", strlen(buffer));
 
         // Checksum
         retval = do_checksum(strlen(buffer));
@@ -112,7 +120,7 @@ void transfer_data(void) {
         // Free memory allocated for mysql result struct 
         mysql_free_result(result);
 
-        /* sleep(5); // For debugging */
+        sleep(5); // For debugging
     }
 }
 
