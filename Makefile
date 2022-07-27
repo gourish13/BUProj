@@ -7,9 +7,7 @@ process2: process2.c
 	$(CC) -o process2 process2.c -ljson-c
 
 install: process1 process2
-	sudo mkdir -p /home/user2/Client
-	sudo cp process2 /home/user2/Client
+	sudo cp process2 /home/sanket/Desktop/clientprj/
 
 clean:
-	rm process1 process2
-	sudo rm -rf /home/user2/Client
+	sudo rm -rf /home/sanket/clientprj/{process2,Employees.json}

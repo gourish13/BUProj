@@ -54,11 +54,11 @@ int do_checksum(int chars_sent) {
 
         if (checksum == chars_sent) { // Checksum OK return back.
             send(client_sock, "Ok", 3, 0); 
-            return TRUE; 
+            return TRUE_VAL; 
         }
         // Otherwise, Handle checksum fail case
         send(client_sock, "Failed", 7, 0); 
-        return FALSE;
+        return FALSE_VAL;
 }
 
 
@@ -70,7 +70,7 @@ void transfer_data(void) {
     recv(client_sock, buffer, BUFSIZE, 0); // "waiting for data" message received from process2
     
     // keep checking database for new rows and kepp sending them to process2
-    while (TRUE) {
+    while (TRUE_VAL) {
         long total_rows = get_db_rows_count(con); // Get count of current database records
         // // If no newly inserted rows, then sleep 30sec and check again
         if (rows_fetched == total_rows) {
@@ -91,7 +91,7 @@ void transfer_data(void) {
         printf("Chars sent count = %lu\n", strlen(buffer));
 
         // Checksum
-        if ( do_checksum(strlen(buffer)) == TRUE )
+        if ( do_checksum(strlen(buffer)) == TRUE_VAL )
             // Persist the value of rows_fetched
             persist_rows_fetched(con);
         else
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]){
 
     printf("Rows_Fetched %ld\n", rows_fetched);
 
-    while(TRUE){
+    while(TRUE_VAL){
         // Keep on accepting until client successfully connected.
         while ( (client_sock = accept(server_sock, (struct sockaddr*)&client_addr, &addr_size)) < 0 );
         printf("OS_USER_2 connected.\n");

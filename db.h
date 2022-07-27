@@ -2,7 +2,7 @@
 
 #define DBHOST "localhost"
 #define DBUSER "root"
-#define DBPASS "123456"
+#define DBPASS "hellosql"
 #define DBNAME "employeedb"
 #define BUF_SIZE 100
 

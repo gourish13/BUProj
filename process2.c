@@ -83,7 +83,7 @@ void transfer_data(void) {
 
     int chars_recvd; // To store count of received records
     // Keep receiving data from process1 and persist them to file.
-    while (TRUE) {
+    while (TRUE_VAL) {
         bzero(buffer, BUFSIZE);
         recv(sock, buffer, BUFSIZE, 0); // Received records from process1
 
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
     open_file("a+");
     fclose(fp);
 
-    while (TRUE) {
+    while (TRUE_VAL) {
         // Try connecting each time after sleeping 30sec until successfull.
         while (connect(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
             sleep(SLEEP_TIME);
