@@ -32,9 +32,9 @@ void get_persisted_rows_fetched(MYSQL *con) {
 // Persist rows_fetched to DB.
 void persist_rows_fetched(MYSQL *con) {
     char stmt[BUF_SIZE];
-
+    // Create MySQL statement to update the rows_fetched count in DB
     sprintf(stmt, "UPDATE RowCount set row_count = %ld", rows_fetched);
-
+    // if result is null, there is error so print error and exit
     if (mysql_query(con, stmt))
         finish_with_error(con);
 }
