@@ -54,7 +54,7 @@ void open_file(char *mode) {
 int file_isempty(void) {
     // Move to end of file and check position if 0 means empty file.
     fseek(fp, 0L, SEEK_END);
-    return ftell(fp)== 0 ? 1 : 0;
+    return ftell(fp)== 0 ? True : False;
 }
 
 // Dump json string to file or append if already present

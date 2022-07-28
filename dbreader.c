@@ -145,7 +145,7 @@ int main(int argc, char *argv[]){
     while(True){
         // Keep on accepting until client successfully connected.
         while ( (client_sock = accept(server_sock, (struct sockaddr*)&client_addr, &addr_size)) < 0 );
-        printf("OS_USER_2 connected.\n");
+        printf("\nOS_USER_2 connected.\n\n");
         // Start data transfer between server and client i.e., process1 and process2 respectively.
         transfer_data();
         // close client socket and reconnect client

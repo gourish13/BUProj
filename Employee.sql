@@ -1008,15 +1008,9 @@ insert into Employee (EmpId, FirstName, LastName, Organization) values ('52-4153
 insert into Employee (EmpId, FirstName, LastName, Organization) values ('35-6149477', 'Gonzalo', 'Van Niekerk', 'Gabspot');
 insert into Employee (EmpId, FirstName, LastName, Organization) values ('37-8756051', 'Ivette', 'Elkington', 'Jaxnation');
 insert into Employee (EmpId, FirstName, LastName, Organization) values ('29-3238911', 'Stanford', 'Georgeon', 'Kare');
-
--- insert into Employee (EmpId, FirstName, LastName, Organization) values ('123', 'Lorry', 'Crowder', 'Voomm');
--- insert into Employee (EmpId, FirstName, LastName, Organization) values ('124', 'Lianne', 'De Anesy', 'Skibox');
--- insert into Employee (EmpId, FirstName, LastName, Organization) values ('124', 'Ivette', 'Elkington', 'Jaxnation');
--- insert into Employee (EmpId, FirstName, LastName, Organization) values ('126', 'Gonzalo', 'Van Niekerk', 'Gabspot');
--- insert into Employee (EmpId, FirstName, LastName, Organization) values ('127', 'Stanford', 'Georgeon', 'Kare');
-
--- insert into Employee (EmpId, FirstName, LastName, Organization) values ('26-07-123', 'Lorry', 'Crowder', 'Voomm');
--- insert into Employee (EmpId, FirstName, LastName, Organization) values ('26-07-124', 'Lianne', 'De Anesy', 'Skibox');
--- insert into Employee (EmpId, FirstName, LastName, Organization) values ('26-07-124', 'Ivette', 'Elkington', 'Jaxnation');
--- insert into Employee (EmpId, FirstName, LastName, Organization) values ('26-07-126', 'Gonzalo', 'Van Niekerk', 'Gabspot');
--- insert into Employee (EmpId, FirstName, LastName, Organization) values ('26-07-127', 'Stanford', 'Georgeon', 'Kare');
+-- Few extra rows for checking new records
+insert into Employee (EmpId, FirstName, LastName, Organization) values ('28-07123', 'Lorry', 'Crowder', 'Voomm');
+insert into Employee (EmpId, FirstName, LastName, Organization) values ('28-07124', 'Lianne', 'De Anesy', 'Skibox');
+insert into Employee (EmpId, FirstName, LastName, Organization) values ('28-07125', 'Ivette', 'Elkington', 'Jaxnation');
+insert into Employee (EmpId, FirstName, LastName, Organization) values ('28-07126', 'Gonzalo', 'Van Niekerk', 'Gabspot');
+insert into Employee (EmpId, FirstName, LastName, Organization) values ('28-07127', 'Stanford', 'Georgeon', 'Kare');
