@@ -4,12 +4,12 @@
 
 There are two process running in two seperate user namely, `dbreader` and `datareceiver`.
 
-**dbreader** - Will be running using OS_USER_1 which will have DB access. DBreader will try to
+**dbreader** - Will be running using OS_USER_1 which will have DB access. dbreader will try to
 connect to the database and extract sample records and convert it to JSON before sending it to
-Datareceiver. After every successful transaction DBreader cleans the buffer and the old data is
+Datareceiver. After every successful transaction dbreader cleans the buffer and the old data is
 discarded.
 
-**satareceiver** - This will be another agent looking for the data read by dbreader. It will be
+**datareceiver** - This will be another agent looking for the data read by dbreader. It will be
 running using OS_USER_2 on the same Linux host. It creates a JSON data file where this
 process is appending 100 records per transfer after checksum validation.
 
